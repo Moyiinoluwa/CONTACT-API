@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const userSchema = mongoose.Schema({
+
+    // user_id: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     required: true,
+    //     ref: 'User'
+    // },
     username: {
         type: String,
         required: [ true, 'Please enter your username']
@@ -32,6 +38,16 @@ const userSchema = mongoose.Schema({
     },
     resetlink: {
         type: String,
+    },
+    profilepics: {
+        name : {
+            type: String,
+            require: true
+        }, 
+        image: {
+            data: Buffer,
+            contentType: String
+        },
     },
 }, {
     timestamps: true

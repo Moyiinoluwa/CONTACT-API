@@ -14,6 +14,7 @@ const OtpSchema = require('../Model/otpSchema');
 const ContactSchema = require('../Model/contactSchema')
 const Joi = require('joi');
 const { mailService } = require('../services/mailer.service');
+const Upload = require('../Middleware/uploadFile')
 
 
 // Generate OTP
@@ -53,7 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
         const { error, value } = await signupValidation(req.body, { abortEarly: false });
         if (error) {
             // Return validation error response
-         return  res.status(400).json({ error: error.message });
+         res.status(400).json({ error: error.message });
         }
 
         const { username, email, password } = req.body;
@@ -61,7 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
         // Check if the user already exists
         const userAvailable = await User.findOne({ email: email });
         if (userAvailable) {
-            return res.status(400).json({ error: 'User already exists' });
+            res.status(400).json({ error: 'User already exists' });
         }
 
         // Hash the password
@@ -76,7 +77,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
         // Save the user to the database
         await user.save();
-        
+         
         // Generate 2FA code and send OTP email
         const verificationCode = generate2FACode6digits();
         await otpMail(email, verificationCode, username);
@@ -94,7 +95,7 @@ const registerUser = asyncHandler(async (req, res) => {
         await sentOtp.save()
 
         // Return a success response
-        return res.status(201).json({ message: 'User registered' });
+        res.status(201).json({ message: 'User registered' });
     } catch (error) {
         throw error
     }
@@ -454,7 +455,6 @@ const finallyResetPassword = asyncHandler(async (req, res) => {
 });
 
 
-
 //change password
 const changePasswordLink = asyncHandler(async (req, res) => {
     try {
@@ -501,7 +501,6 @@ const changePasswordLink = asyncHandler(async (req, res) => {
         throw error
     }
 });
-
 
 //Upate user with the PUT Route
 const updateUser = asyncHandler(async (req, res) => {
@@ -561,6 +560,45 @@ const getCurrent = asyncHandler(async (req, res) => {
 });
 
 
+const userUpload = asyncHandler(async (req, res) => {
+    try {
+        Upload(req, res, (err) => {
+            if (err) {
+                console.log(err);
+            }
+
+            // Assuming you have other fields in your request body, make sure to include them
+            const { username, email, password } = req.body;
+
+            // Validate if required fields are present
+            if (!username|| !email || !password ) {
+                res.status(400).json({ error: 'Please provide all required fields' });
+            }
+
+            const newUser = new User({
+                username,
+                email,
+                password,
+                profilepics: {
+                    name: req.body.name,
+                    image: {
+                        data: req.file.filename,
+                        contentType: 'image/png',
+                    }
+                }
+            });
+
+            newUser.save()
+                .then(() => res.status(200).json({ message: 'Successfully uploaded profile picture' }))
+                .catch((err) => {
+                    console.log(err);
+                });
+        });
+    } catch (error) {
+        console.error(error);
+    }
+});
+
 module.exports = {
     getUser,
     getOneUser,
@@ -576,4 +614,5 @@ module.exports = {
     updateUser,
     deleteUser,
     getCurrent,
-}
+    userUpload
+} 

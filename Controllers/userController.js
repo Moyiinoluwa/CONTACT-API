@@ -562,42 +562,49 @@ const getCurrent = asyncHandler(async (req, res) => {
 
 const userUpload = asyncHandler(async (req, res) => {
     try {
-        Upload(req, res, (err) => {
+        // Assuming Upload is a middleware that handles file uploads and calls the callback
+        Upload(req, res, async (err) => {
             if (err) {
                 console.log(err);
+                return res.status(500).json({ message: 'Error uploading file' });
             }
 
-            // Assuming you have other fields in your request body, make sure to include them
-            const { username, email, password } = req.body;
+            const { userId } = req.params;
+            console.log(userId)
 
-            // Validate if required fields are present
-            if (!username|| !email || !password ) {
-                res.status(400).json({ error: 'Please provide all required fields' });
+            if (!userId) {
+                return res.status(404).json({ message: 'User ID not provided' });
             }
 
-            const newUser = new User({
-                username,
-                email,
-                password,
-                profilepics: {
+            try {
+                const user = await User.findOne({ where: { id: userId } });
+
+                if (!user) {
+                    return res.status(404).json({ message: 'User not found' });
+                }
+
+                const newImage = new ImageModel({
                     name: req.body.name,
                     image: {
                         data: req.file.filename,
-                        contentType: 'image/png',
+                        contentType: req.file.mimetype
                     }
-                }
-            });
-
-            newUser.save()
-                .then(() => res.status(200).json({ message: 'Successfully uploaded profile picture' }))
-                .catch((err) => {
-                    console.log(err);
                 });
+
+                await newImage.save();
+
+                return res.status(200).json({ message: 'Successfully uploaded profile picture' });
+            } catch (error) {
+                console.error(error);
+                return res.status(500).json({ message: 'Internal Server Error' });
+            }
         });
     } catch (error) {
         console.error(error);
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
-});
+}); 
+
 
 module.exports = {
     getUser,

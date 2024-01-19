@@ -40,14 +40,8 @@ const userSchema = mongoose.Schema({
         type: String,
     },
     profilepics: {
-        name : {
-            type: String,
-            require: true
-        }, 
-        image: {
-            data: Buffer,
-            contentType: String
-        },
+         type: String,
+         data: Buffer
     },
 }, {
     timestamps: true

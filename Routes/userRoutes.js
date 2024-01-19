@@ -32,6 +32,8 @@ router.patch('/resend-password', Controller.finallyResetPassword)
 
 router.patch('/change-password', Controller.changePasswordLink)
 
-router.patch('/upload/:id', Controller.userUpload)
+//router.patch('/upload/:id', Controller.userUpload)
+
+router.patch('/upload/:id', Controller.uploadNew)
 
 module.exports = router;

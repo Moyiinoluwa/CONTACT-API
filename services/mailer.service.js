@@ -9,8 +9,8 @@ class MailService {
         this.transporter = nodemailer.createTransport({
             service: 'gmail',  // Use the Gmail service
             auth: {
-                user: process.env.AUTH_EMAIL,  // Your Gmail email address (from environment variables)
-                pass: process.env.AUTH_PASS,   // Your Gmail password (from environment variables)
+                user: process.env.AUTH_EMAIL,  
+                pass: process.env.AUTH_PASS,   
             },
         });
 
@@ -29,10 +29,10 @@ class MailService {
         try {
             // Define email options, including sender, recipient, subject, and message body
             const mailOptions = {
-                from: process.env.AUTH_EMAIL,  // Sender's email address
-                to: email,                      // Recipient's email address
-                subject: subject,               // Email subject
-                html: body,                     // HTML content of the email
+                from: process.env.AUTH_EMAIL,
+                to: email,                      
+                subject: subject,            
+                html: body,                   
             };
 
             // Send the email using the transporter

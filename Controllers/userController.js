@@ -559,51 +559,71 @@ const getCurrent = asyncHandler(async (req, res) => {
     res.status(200).json(req.user);
 });
 
+// const userUpload = asyncHandler(async (req, res) => {
+//     try {
+//         // Assuming Upload is a middleware that handles file uploads and calls the callback
+//         // Upload( req, res, async (err) => {
+//         //     if (err) {
+//         //         console.log(err);
+//         //         return res.status(500).json({ message: 'Error uploading file' });
+//         //     }
 
-const userUpload = asyncHandler(async (req, res) => {
-    try {
-        // Assuming Upload is a middleware that handles file uploads and calls the callback
-        Upload(req, res, async (err) => {
-            if (err) {
-                console.log(err);
-                return res.status(500).json({ message: 'Error uploading file' });
-            }
+//             const { userId } = req.params;
 
-            const { userId } = req.params;
-            console.log(userId)
 
-            if (!userId) {
-                return res.status(404).json({ message: 'User ID not provided' });
-            }
+//             try {
+//                 const user = await User.findOne({ where: { id: userId } });
 
-            try {
-                const user = await User.findOne({ where: { id: userId } });
+//                 if (!user) {
+//                     return res.status(404).json({ message: 'User not found' });
+//                 }
+
+//                 // Assuming the file property is directly available on req, not req.file.file
+//                 const imageUrl = req.file.path; // Assuming 'path' is the property you want
+
+//                 const newpic = new User()
+//                 newpic.
+
+//                 user.profilepics = imageUrl;
+
+//                 await user.save(); // Fixed the method name
+
+//                 return res.status(200).json({ message: 'Successfully uploaded profile picture' });
+//             // } catch (error) {
+//             //     console.error(error);
+//             //     return res.status(500).json({ message: 'Internal Server Error' });
+//             // }
+//        // });
+//             } catch (error) {
+//         console.error(error);
+//         return res.status(500).json({ message: 'Internal Server Error' });
+//     }
+// })
+
+
+    const uploadNew = asyncHandler(async (req, res) => {
+
+        const { userId } = req.params
+
+        try {
+            const user = await User.findOne({ where: { id: userId } });
 
                 if (!user) {
                     return res.status(404).json({ message: 'User not found' });
                 }
 
-                const newImage = new ImageModel({
-                    name: req.body.name,
-                    image: {
-                        data: req.file.filename,
-                        contentType: req.file.mimetype
-                    }
-                });
+                const imageUrl = req.file.path; 
+            
+                user.profilepics = imageUrl;
 
-                await newImage.save();
+                await user.save(); 
 
                 return res.status(200).json({ message: 'Successfully uploaded profile picture' });
-            } catch (error) {
-                console.error(error);
-                return res.status(500).json({ message: 'Internal Server Error' });
-            }
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ message: 'Internal Server Error' });
-    }
-}); 
+
+        } catch (error) {
+            throw error
+        }
+    })
 
 
 module.exports = {
@@ -621,5 +641,6 @@ module.exports = {
     updateUser,
     deleteUser,
     getCurrent,
-    userUpload
+   // userUpload,
+    uploadNew
 } 

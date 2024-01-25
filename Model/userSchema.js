@@ -38,10 +38,12 @@ const userSchema = mongoose.Schema({
     },
     resetlink: {
         type: String,
+        default: ''
     },
     profilepics: {
          type: String,
-         data: Buffer
+         data: Buffer,
+         default: ''
     },
 }, {
     timestamps: true

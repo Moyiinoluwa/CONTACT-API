@@ -14,7 +14,7 @@ const OtpSchema = require('../Model/otpSchema');
 const ContactSchema = require('../Model/contactSchema')
 const Joi = require('joi');
 const { mailService } = require('../services/mailer.service');
-const Upload = require('../Middleware/uploadFile')
+const upload = require('../Middleware/uploadFile')
 
 
 // Generate OTP
@@ -377,7 +377,7 @@ const resendOtp = asyncHandler(async (req, res) => {
 });
 
 //reset password token
-const sendResetPasswordToken = asyncHandler(async (req, res) => {
+const sendResetPasswordLink = asyncHandler(async (req, res) => {
     try {
         // Validate the incoming request body using a validation function
         const { error, value } = await resendPasswordLinkValidation(req.body, { abortEarly: false });
@@ -396,7 +396,7 @@ const sendResetPasswordToken = asyncHandler(async (req, res) => {
             res.status(404).json({ message: 'Please enter the correct email' });
         }
 
-        // Generate a new password reset token (assumed to be a 6-digit code)
+        // Generate a new password reset token 
         const resetToken = generate2FACode6digits();
 
          // Save the password reset token and set a flag in the user's database record
@@ -419,7 +419,7 @@ const sendResetPasswordToken = asyncHandler(async (req, res) => {
 
 //reset link
 
-const finallyResetPassword = asyncHandler(async (req, res) => { 
+const resetPassword = asyncHandler(async (req, res) => { 
     try {
         const { error, value } = resetPasswordLinkValidation(req.body, { abortEarly: false });
         if (error) {
@@ -540,9 +540,11 @@ const deleteUser = asyncHandler(async (req, res) => {
         throw new Error('Contact not found, please recheck the ID and try again');
     }
 
+    const userRemove = await User.deleteOne({_id: req.params.id });
+    console.log(userRemove)
     // If the user exists, casade delete the user from the database
-    await ContactSchema.deleteMany({ user: user_id })
-    await OtpSchema.deleteMany({ user: user_id })
+    // await ContactSchema.deleteMany({ user_id: req.params.id })
+    // await OtpSchema.deleteMany({ user: user_id })
 
 
     // Respond with a 200 OK status and the deleted user
@@ -550,23 +552,24 @@ const deleteUser = asyncHandler(async (req, res) => {
 });
 
 
-// //Route to GET the current user information /api/user/current
-const getCurrent = asyncHandler(async (req, res) => {
-    // Log the user object to the console (for debugging or logging purposes)
-    console.log(req.user);
-
+// //Route to GET the current user logged in
+const currentUser = asyncHandler(async (req, res) => {
     // Respond with a 200 OK status and the current user's information as JSON
     res.status(200).json(req.user);
 });
 
 // const userUpload = asyncHandler(async (req, res) => {
+//     console.log("Moyin");
+//     res.status(200).send("Working");
+// });
+
+// const userUpload = asyncHandler(async (req, res) => {
 //     try {
-//         // Assuming Upload is a middleware that handles file uploads and calls the callback
-//         // Upload( req, res, async (err) => {
-//         //     if (err) {
-//         //         console.log(err);
-//         //         return res.status(500).json({ message: 'Error uploading file' });
-//         //     }
+//         Upload( req, res, async (err) => {
+//             if (err) {
+//                 console.log(err);
+//                 return res.status(500).json({ message: 'Error uploading file' });
+//             }
 
 //             const { userId } = req.params;
 
@@ -602,28 +605,41 @@ const getCurrent = asyncHandler(async (req, res) => {
 
 
     const uploadNew = asyncHandler(async (req, res) => {
-
-        const { userId } = req.params
-
+       
+        const { id } = req.params
+        // console.log(id)
         try {
-            const user = await User.findOne({ where: { id: userId } });
+            // const user = await User.findOne({ where: { id: id } });
+            const user = await User.findById(id);
 
                 if (!user) {
                     return res.status(404).json({ message: 'User not found' });
                 }
 
-                const imageUrl = req.file.path; 
-            
+                const imageUrl = req.file.filename; 
                 user.profilepics = imageUrl;
 
                 await user.save(); 
-
                 return res.status(200).json({ message: 'Successfully uploaded profile picture' });
 
         } catch (error) {
-            throw error
+           throw error
         }
-    })
+     })
+
+    // const uploadProfilePics = asyncHandler(async(req, res) => {
+    //     try {
+    //         Upload(req, res, (err) => {
+    //             if(err) {
+    //                 console.log(er)
+    //             } else{
+    //                 const newImage = new ImageModel()
+    //             }
+    //         })
+    //     } catch (error) {
+    //         throw error
+    //     }
+    // });
 
 
 module.exports = {
@@ -634,13 +650,13 @@ module.exports = {
     verifyUserOtp,
     verifyUserOtpLink,
     resendOtp,
-    sendResetPasswordToken,
-    finallyResetPassword,
+    sendResetPasswordLink,
+    resetPassword,
     changePasswordLink,
     login,
     updateUser,
     deleteUser,
-    getCurrent,
-   // userUpload,
+    currentUser,
+  // userUpload,
     uploadNew
 } 

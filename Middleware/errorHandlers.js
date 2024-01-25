@@ -1,9 +1,6 @@
-//This file handles the errorhandling. Export it to the app.js and call it as a function
 const Constant = require('../Constants');
 const errorHandler = (err, req, res, next) => {
     const statusCode = res.statusCode ? res.statusCode : 500;
-    //this JSON parse the error message from javascript to JSON
-       // res.json({title: 'NOT FOUND', message: err.message, stakeTrace: err.stake})
         switch (statusCode) {
             case Constant.VALIDATION_ERROR:
                 res.json({

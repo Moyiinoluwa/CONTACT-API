@@ -1,5 +1,4 @@
-//this file creates the schema,i.e, the requirement that will be use 
-//to enter data in the database.
+
 const mongoose = require('mongoose');
 
 const contactSchema = mongoose.Schema({

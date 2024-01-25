@@ -598,6 +598,5 @@ module.exports = {
     updateUser,
     deleteUser,
     currentUser,
-  // userUpload,
     uploadNew
 } 

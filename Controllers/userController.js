@@ -558,52 +558,7 @@ const currentUser = asyncHandler(async (req, res) => {
     res.status(200).json(req.user);
 });
 
-// const userUpload = asyncHandler(async (req, res) => {
-//     console.log("Moyin");
-//     res.status(200).send("Working");
-// });
-
-// const userUpload = asyncHandler(async (req, res) => {
-//     try {
-//         Upload( req, res, async (err) => {
-//             if (err) {
-//                 console.log(err);
-//                 return res.status(500).json({ message: 'Error uploading file' });
-//             }
-
-//             const { userId } = req.params;
-
-
-//             try {
-//                 const user = await User.findOne({ where: { id: userId } });
-
-//                 if (!user) {
-//                     return res.status(404).json({ message: 'User not found' });
-//                 }
-
-//                 // Assuming the file property is directly available on req, not req.file.file
-//                 const imageUrl = req.file.path; // Assuming 'path' is the property you want
-
-//                 const newpic = new User()
-//                 newpic.
-
-//                 user.profilepics = imageUrl;
-
-//                 await user.save(); // Fixed the method name
-
-//                 return res.status(200).json({ message: 'Successfully uploaded profile picture' });
-//             // } catch (error) {
-//             //     console.error(error);
-//             //     return res.status(500).json({ message: 'Internal Server Error' });
-//             // }
-//        // });
-//             } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ message: 'Internal Server Error' });
-//     }
-// })
-
-
+ //Upload profile picture
     const uploadNew = asyncHandler(async (req, res) => {
        
         const { id } = req.params
@@ -626,20 +581,6 @@ const currentUser = asyncHandler(async (req, res) => {
            throw error
         }
      })
-
-    // const uploadProfilePics = asyncHandler(async(req, res) => {
-    //     try {
-    //         Upload(req, res, (err) => {
-    //             if(err) {
-    //                 console.log(er)
-    //             } else{
-    //                 const newImage = new ImageModel()
-    //             }
-    //         })
-    //     } catch (error) {
-    //         throw error
-    //     }
-    // });
 
 
 module.exports = {

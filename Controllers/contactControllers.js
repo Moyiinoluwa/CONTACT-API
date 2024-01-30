@@ -12,6 +12,7 @@ const getAllContact = asyncHandler(async (req, res) => {
 
 //Create a new contact
 const createContact = asyncHandler(async (req, res) => {
+    console.log('tree')
     try {
         //validate the user input
         console.log('money')
@@ -99,13 +100,13 @@ const deleteContact = asyncHandler(async (req, res) => {
         res.status(404).json({message: 'contact not found'});
     }
     if (contact.user_id.toString() !== req.user.id) {
-        res.status(403).json({'User dont have permission to delete another contact'})
+        res.status(403).json({ message: 'User dont have permission to delete another contact'})
     }
 
     await Contact.deleteOne({ _id: req.params.id });
 
     res.status(200).json(contact)
-    
+
   } catch (error) {
     throw error
   }

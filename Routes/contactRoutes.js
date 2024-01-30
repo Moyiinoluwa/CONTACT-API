@@ -9,7 +9,7 @@ router.use(validateToken);
 router.get('/get-contact', Controller.getAllContact)
 
 //post new contact
-router.post('/create', Controller.createContact)
+//router.post('/create', Controller.createContact)
 
 //get one contact
 router.get('/get-one/:id', Controller.getContactId)

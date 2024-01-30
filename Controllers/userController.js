@@ -1,20 +1,11 @@
 const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../Model/userSchema'); 
-const { signupValidation,
-    verifyOtpValidation,
-    resendOtpLinkValidation,
-    resendPasswordLinkValidation,
-    resetPasswordLinkValidation,
-    changePasswordValidationLink,
-    loginUserValidation } = require('../Validator/validationSchema')
+const User = require('../Model/userSchema');
+const { signupValidation, verifyOtpValidation, resendOtpLinkValidation, resendPasswordLinkValidation,
+    resetPasswordLinkValidation, changePasswordValidationLink, loginUserValidation } = require('../Validator/validationSchema')
 const { otpMail, welcomeMail, passwordResetLinkMail } = require('../Shared/mailer');
-const OtpSchema = require('../Model/otpSchema');
-const ContactSchema = require('../Model/contactSchema')
-const Joi = require('joi');
-const { mailService } = require('../services/mailer.service');
-const upload = require('../Middleware/uploadFile')
+const OtpSchema = require('../Model/otpSchema')
 
 
 // Generate OTP
@@ -37,24 +28,18 @@ const getOneUser = asyncHandler(async (req, res) => {
 
     // Check if the user exists
     if (!user) {
-        // If the user is not found, respond with a 404 Not Found status and throw an error
-        res.status(404);
-        throw new Error('Contact not found, check again');
+        res.status(404).json({ message: 'Contact not found, check again' });
     }
-
-    // Respond with a 200 OK status and the user's information as JSON
     res.status(200).json(user);
 });
 
-
-//POST Route to register a new user api/user/register
+//Register a new user 
 const registerUser = asyncHandler(async (req, res) => {
     try {
         // Validate user input
         const { error, value } = await signupValidation(req.body, { abortEarly: false });
         if (error) {
-            // Return validation error response
-         res.status(400).json({ error: error.message });
+            res.status(400).json({ error: error.message });
         }
 
         const { username, email, password } = req.body;
@@ -77,7 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
         // Save the user to the database
         await user.save();
-         
+
         // Generate 2FA code and send OTP email
         const verificationCode = generate2FACode6digits();
         await otpMail(email, verificationCode, username);
@@ -94,7 +79,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
         await sentOtp.save()
 
-        // Return a success response
         res.status(201).json({ message: 'User registered' });
     } catch (error) {
         throw error
@@ -102,14 +86,14 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 
-//POST Route to register a new user api/user/register
+//Register a new user with link
 const registerLinkUser = asyncHandler(async (req, res) => {
     try {
         // Validate user input
         const { error, value } = await signupValidation(req.body, { abortEarly: false });
         if (error) {
             // Return validation error response
-             res.status(400).json({ error: error.message });
+            res.status(400).json({ error: error.message });
         }
 
         const { username, email, password } = req.body;
@@ -117,7 +101,7 @@ const registerLinkUser = asyncHandler(async (req, res) => {
         // Check if the user already exists
         const userAvailable = await User.findOne({ email: email });
         if (userAvailable) {
-             res.status(400).json({ error: 'User already exists' });
+            res.status(400).json({ error: 'User already exists' });
         }
 
         // Hash the password
@@ -153,7 +137,6 @@ const registerLinkUser = asyncHandler(async (req, res) => {
 
         await sentOtp.save()
 
-        // Return a success response
         return res.status(201).json({ message: 'User registered' });
     } catch (error) {
         throw error
@@ -162,17 +145,15 @@ const registerLinkUser = asyncHandler(async (req, res) => {
 
 
 
-//Route to POST user login /api/user/login
+//user login 
 const login = asyncHandler(async (req, res) => {
     try {
         // Validate the incoming request body using a validation function
         const { error, value } = loginUserValidation(req.body, { abortEarly: false });
         if (error) {
-            // If validation fails, respond with a 400 Bad Request status and an error message
             res.status(400).json({ message: error.message });
         }
 
-        // Extract data from the request body
         const { email, password } = req.body;
 
         // Find a user with the provided email in the database
@@ -180,7 +161,6 @@ const login = asyncHandler(async (req, res) => {
 
         // Compare the password provided in the request with the hashed password stored in the user object
         if (user && (await bcrypt.compare(password, user.password))) {
-            // If the passwords match, generate a JSON Web Token (JWT) for authentication
             const accessToken = jwt.sign({
                 user: {
                     username: user.username,
@@ -188,25 +168,18 @@ const login = asyncHandler(async (req, res) => {
                     id: user.id
                 }
             },
-                process.env.SECRET, // Use the secret key to sign the token
-
-                // Set the token's expiration time (e.g., 1 year)
+                process.env.SECRET,
                 { expiresIn: '1y' },
             );
 
-            // Respond with a 200 OK status and the JWT token for successful login
             res.status(200).json({ accessToken });
         } else {
-            // If the passwords do not match, respond with a 401 Unauthorized status and an error message
             res.status(401).json({ message: 'Login details not correct' });
         }
 
     } catch (error) {
         throw error
-
     }
-    
-    
 });
 
 
@@ -215,8 +188,7 @@ const verifyUserOtp = asyncHandler(async (req, res) => {
         // Validate the incoming request body using a validation function
         const { error, value } = await verifyOtpValidation(req.body, { abortEarly: false });
         if (error) {
-            // If validation fails, return a 400 Bad Request response with a validation error message
-             res.status(400).json({ error: error.message });
+            res.status(400).json({ error: error.message });
         }
 
         // Extract data from the request body
@@ -225,20 +197,17 @@ const verifyUserOtp = asyncHandler(async (req, res) => {
         // Check if an OTP record with the provided email exists in the database
         const verifyEmail = await OtpSchema.findOne({ email: email });
         if (!verifyEmail) {
-            // If no record is found, respond with a 404 Not Found status and an error message
-             res.status(404).json({ message: 'The email does not match the email the OTP was sent to' });
+            res.status(404).json({ message: 'The email does not match the email the OTP was sent to' });
         }
 
         // Check if an OTP record with the provided OTP code exists in the database
         const checkOtp = await OtpSchema.findOne({ otp: otp });
         if (!checkOtp) {
-            // If no record is found, respond with a 404 Not Found status and an error message
-             res.status(404).json({ message: 'Incorrect OTP, please check your email again' });
+            res.status(404).json({ message: 'Incorrect OTP, please check your email again' });
         }
 
-        // Check if the OTP has expired (compare with the current time)
+        // Check if the OTP has expired 
         if (checkOtp.expirationTime <= new Date()) {
-            // If the OTP has expired, respond with a 403 Forbidden status and an error message
             res.status(403).json({ message: 'OTP expired, please request for another one' });
         }
 
@@ -249,7 +218,6 @@ const verifyUserOtp = asyncHandler(async (req, res) => {
         // Find the user associated with the provided email
         const user = await User.findOne({ email: email });
         if (!user) {
-            // If the user is not found, respond with a 404 Not Found status and an error message
             res.status(404).json({ message: 'User does not exist' });
         }
         user.Isverified = true;
@@ -258,11 +226,9 @@ const verifyUserOtp = asyncHandler(async (req, res) => {
         // Send a welcome email to the user after OTP verification
         await welcomeMail(user.email, user.username);
 
-        // Respond with a 200 OK status and a success message
-        return res.status(200).json({ message: 'OTP successfully verified, now proceed to login' });
+        res.status(200).json({ message: 'OTP successfully verified, now proceed to login' });
 
     } catch (error) {
-        // If an error occurs during the process, throw the error
         throw error;
     }
 });
@@ -284,20 +250,17 @@ const verifyUserOtpLink = asyncHandler(async (req, res) => {
         // Check if an OTP record with the provided email exists in the database
         const verifyEmail = await OtpSchema.findOne({ email: email });
         if (!verifyEmail) {
-            // If no record is found, respond with a 404 Not Found status and an error message
-             res.status(404).json({ message: 'The email does not match the email the OTP was sent to' });
+            res.status(404).json({ message: 'The email does not match the email the OTP was sent to' });
         }
 
         // Check if an OTP record with the provided OTP code exists in the database
         const checkOtp = await OtpSchema.findOne({ otp: token });
         if (!checkOtp) {
-            // If no record is found, respond with a 404 Not Found status and an error message
-             res.status(404).json({ message: 'Incorrect OTP, please check your email again' });
+            res.status(404).json({ message: 'Incorrect OTP, please check your email again' });
         }
 
         // Check if the OTP has expired (compare with the current time)
         if (checkOtp.expirationTime <= new Date()) {
-            // If the OTP has expired, respond with a 403 Forbidden status and an error message
             res.status(403).json({ message: 'OTP expired, please request for another one' });
         }
 
@@ -308,7 +271,6 @@ const verifyUserOtpLink = asyncHandler(async (req, res) => {
         // Find the user associated with the provided email
         const user = await User.findOne({ email: email });
         if (!user) {
-            // If the user is not found, respond with a 404 Not Found status and an error message
             res.status(404).json({ message: 'User does not exist' });
         }
         user.Isverified = true;
@@ -317,15 +279,12 @@ const verifyUserOtpLink = asyncHandler(async (req, res) => {
         // Send a welcome email to the user after OTP verification
         await welcomeMail(user.email, user.username);
 
-        // Respond with a 200 OK status and a success message
         return res.status(200).json({ message: 'OTP successfully verified, now proceed to login' });
 
     } catch (error) {
-        // If an error occurs during the process, throw the error
         throw error;
     }
 });
-
 
 //Route to resend otp
 const resendOtp = asyncHandler(async (req, res) => {
@@ -333,45 +292,38 @@ const resendOtp = asyncHandler(async (req, res) => {
         // Validate the incoming request body using a validation function
         const { error, value } = await resendOtpLinkValidation(req.body, { abortEarly: false });
         if (error) {
-            // If validation fails, return a 400 Bad Request response with a validation error message
             res.status(400).json({ error: error.message });
         }
 
         // Extract the email from the request body
         const { email } = req.body;
 
-        // Check if the provided email is registered in the API
+        // Check if the provided email is registered 
         const findEmail = await User.findOne({ email: email });
         if (!findEmail) {
-            // If the email is not found, respond with a 404 Not Found status and an error message
-            res.status(404).json({ message: 'This email is not registered' });  
+            res.status(404).json({ message: 'This email is not registered' });
         }
 
-        // Generate a new OTP code (presumably a 6-digit code)
+        // Generate a new OTP code 
         const newOtp = generate2FACode6digits();
 
         // Send the new OTP code to the user via email
         await otpMail(email, newOtp, findEmail.username);
 
-        // Calculate the expiration time for the new OTP (1 minute from now)
+        // Calculate the expiration time for the new OTP
         const fiveMinutesLater = new Date();
         fiveMinutesLater.setMinutes(fiveMinutesLater.getMinutes() + 2);
 
-        // Create a new instance of the OtpSchema model (assuming it's a Mongoose model)
+        // Save the new OTP record to the database
         const sentOtp = new OtpSchema();
-
-        // Set the email, OTP code, and expiration time for the new OTP record
         sentOtp.email = findEmail.email;
         sentOtp.otp = newOtp;
         sentOtp.expirationTime = fiveMinutesLater;
 
-        // Save the new OTP record to the database
         await sentOtp.save();
 
-        // Respond with a 200 OK status and a success message
         res.status(200).json({ message: 'New OTP has been sent, please check your email' });
     } catch (error) {
-        // If an error occurs during the process, throw the error
         throw error;
     }
 });
@@ -382,71 +334,70 @@ const sendResetPasswordLink = asyncHandler(async (req, res) => {
         // Validate the incoming request body using a validation function
         const { error, value } = await resendPasswordLinkValidation(req.body, { abortEarly: false });
         if (error) {
-            // If validation fails, respond with a 400 Bad Request status and an error message
             res.status(400).json({ message: error.message });
         }
 
-        // Extract the email from the request body
         const { email } = req.body;
 
         // Check if the provided email is registered in the User collection
         const getEmail = await User.findOne({ email: email });
         if (!getEmail) {
-            // If the email is not found, respond with a 404 Not Found status and an error message
             res.status(404).json({ message: 'Please enter the correct email' });
         }
 
         // Generate a new password reset token 
         const resetToken = generate2FACode6digits();
 
-         // Save the password reset token and set a flag in the user's database record
+        // Save the password reset token 
         getEmail.resetlink = resetToken;
         getEmail.Ispasswordresentlinksent = true;
 
         // Save the changes to the user's database record
         await getEmail.save();
 
-        // Send the password reset link to the user via email (using the passwordResetLinkMail function)
+        // Send the password reset link to the user via email
         await passwordResetLinkMail(email, resetToken, getEmail.username);
 
-        // Respond with a 200 OK status and a success message
+
         res.status(200).json({ message: 'Password reset token has been sent successfully' });
     } catch (error) {
-        // If an error occurs during the process, throw the error
         throw error;
     }
 });
 
 //reset link
-
-const resetPassword = asyncHandler(async (req, res) => { 
+const resetPassword = asyncHandler(async (req, res) => {
     try {
         const { error, value } = resetPasswordLinkValidation(req.body, { abortEarly: false });
         if (error) {
             res.status(400).json({ message: message.error })
         }
-        const { email, password } = req.body;
+        const { email, password, resetLink } = req.body;
 
         // Check if the email exists in the database
-        const user = await User.findOne({ email });
-        if (!user) {
+        const student = await User.findOne({ email });
+        if (!student) {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        //validate the token
+        //validate the link
+        if (student.resetLink !== resetLink) {
+            res.status(400).json({ message: 'Invalid reset link' })
+        }
 
         // expiration time 
         const resetExpirationTime = new Date()
-        resetExpirationTime.setMinutes(resetExpirationTime.getMinutes() + 2)
+        resetExpirationTime.setMinutes(resetExpirationTime.getMinutes() + 5)
 
         // Hash the new password
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Update the user's password and save it to the database
-        user.password = hashedPassword;
-        await user.save();
+        student.password = hashedPassword;
+        student.resetLinkExpirationTime = resetExpirationTime
+        student.isResetPasswordLinkSent = false
 
-        // You may also want to invalidate the reset token here if you're using one
+        await student.save();
 
         res.status(200).json({ message: 'Password reset successfully' });
     } catch (error) {
@@ -461,7 +412,6 @@ const changePasswordLink = asyncHandler(async (req, res) => {
         // Validate the incoming request body using a validation function
         const { error, value } = changePasswordValidationLink(req.body, { abortEarly: false })
         if (error) {
-            // If validation fails, respond with a 400 Bad Request status and an error message
             res.status(400).json({ message: error.message })
         }
 
@@ -471,16 +421,13 @@ const changePasswordLink = asyncHandler(async (req, res) => {
         // Check if a user with the provided email exists in the database
         const user = await User.findOne({ email: email })
         if (!user) {
-            // If the user is not found, respond with a 404 Not Found status and an error message
             res.status(404).json({ message: 'Check if the email you entered is correct' })
         }
 
         // Compare the existing password with the hashed password stored in the user object
         if (user && (await bcrypt.compare(existingPassword, user.password))) {
-            // If the passwords match, respond with a 200 OK status and a success message
             res.status(200).json({ message: 'User and existing password match' })
         } else {
-            // If the passwords do not match, respond with a 404 Not Found status and an error message
             res.status(404).json({ message: 'Existing password does not match' })
         }
 
@@ -493,18 +440,15 @@ const changePasswordLink = asyncHandler(async (req, res) => {
         // Save the new password to the database
         await user.save()
 
-        // Respond with a 201 Created status and a success message
         res.status(201).json({ message: 'Password has been changed successfully' })
 
     } catch (error) {
-        // If an error occurs during the process, throw the error
         throw error
     }
 });
 
 //Upate user with the PUT Route
 const updateUser = asyncHandler(async (req, res) => {
-    // Extract the new username from the request body
     const { username } = req.body;
 
     // Find the user in the database based on the provided ID
@@ -522,7 +466,6 @@ const updateUser = asyncHandler(async (req, res) => {
     // Save the updated user in the database
     await User.save(isUser);
 
-    // Respond with a 200 OK status and the updated user information
     res.status(200).json({ isUser });
 });
 
@@ -535,13 +478,10 @@ const deleteUser = asyncHandler(async (req, res) => {
 
     // Check if the user exists
     if (!user) {
-        // If the user is not found, respond with a 404 Not Found status and an error message
-        res.status(404);
-        throw new Error('Contact not found, please recheck the ID and try again');
+        res.status(404).json({ message: 'Contact not found, please recheck the ID and try again' });
     }
 
-    const userRemove = await User.deleteOne({_id: req.params.id });
-    console.log(userRemove)
+    const userRemove = await User.deleteOne({ _id: req.params.id });
     // If the user exists, casade delete the user from the database
     // await ContactSchema.deleteMany({ user_id: req.params.id })
     // await OtpSchema.deleteMany({ user: user_id })
@@ -554,33 +494,30 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 // //Route to GET the current user logged in
 const currentUser = asyncHandler(async (req, res) => {
-    // Respond with a 200 OK status and the current user's information as JSON
     res.status(200).json(req.user);
 });
 
- //Upload profile picture
-    const uploadNew = asyncHandler(async (req, res) => {
-       
-        const { id } = req.params
-        // console.log(id)
-        try {
-            // const user = await User.findOne({ where: { id: id } });
-            const user = await User.findById(id);
+//Upload profile picture
+const uploadNew = asyncHandler(async (req, res) => {
 
-                if (!user) {
-                    return res.status(404).json({ message: 'User not found' });
-                }
+    const { id } = req.params
+    try {
+        const user = await User.findById(id);
 
-                const imageUrl = req.file.filename; 
-                user.profilepics = imageUrl;
-
-                await user.save(); 
-                return res.status(200).json({ message: 'Successfully uploaded profile picture' });
-
-        } catch (error) {
-           throw error
+        if (!user) {
+            res.status(404).json({ message: 'User not found' });
         }
-     })
+
+        const imageUrl = req.file.filename;
+        user.profilepics = imageUrl;
+
+        await user.save();
+        res.status(200).json({ message: 'Successfully uploaded profile picture' });
+
+    } catch (error) {
+        throw error
+    }
+})
 
 
 module.exports = {

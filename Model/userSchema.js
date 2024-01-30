@@ -40,6 +40,11 @@ const userSchema = mongoose.Schema({
         type: String,
         default: ''
     },
+
+    resetLinkExpirationTime: {
+        type: Date,
+    },
+
     profilepics: {
          type: String,
          data: Buffer,

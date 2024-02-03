@@ -14,7 +14,7 @@ app.use('/api/contact', require('./Routes/contactRoutes'))
 app.use('/api/user', require('./Routes/userRoutes'));
 
 //errorhandler function
-app.use(errorHandler);
+// app.use(errorHandler);
 app.use('/api/user/current',validateToken)
 
 

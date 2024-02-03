@@ -7,7 +7,7 @@ schema.validate(payload, { abortEarly: false });
 const createContactValidation = joi.object({
     name: joi.string().lowercase().required(),
     email: joi.string().email().lowercase().required(),
-    phone: joi.string().min(11).max(11).required()
+    phone: joi.string().min(11).max(11).required(),
 });
 
 

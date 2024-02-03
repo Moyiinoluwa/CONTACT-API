@@ -447,7 +447,7 @@ const changePasswordLink = asyncHandler(async (req, res) => {
     }
 });
 
-//Upate user with the PUT Route
+//Upate user 
 const updateUser = asyncHandler(async (req, res) => {
     const { username } = req.body;
 
@@ -482,11 +482,7 @@ const deleteUser = asyncHandler(async (req, res) => {
     }
 
     const userRemove = await User.deleteOne({ _id: req.params.id });
-    // If the user exists, casade delete the user from the database
-    // await ContactSchema.deleteMany({ user_id: req.params.id })
-    // await OtpSchema.deleteMany({ user: user_id })
-
-
+     
     // Respond with a 200 OK status and the deleted user
     res.status(200).json({ message: 'user deleted' });
 });

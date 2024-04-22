@@ -192,13 +192,7 @@ const verifyUserOtp = asyncHandler(async (req, res) => {
         }
 
         // Extract data from the request body
-        const { email, otp } = req.body;
-
-        // Check if an OTP record with the provided email exists in the database
-        const verifyEmail = await OtpSchema.findOne({ email: email });
-        if (!verifyEmail) {
-            res.status(404).json({ message: 'The email does not match the email the OTP was sent to' });
-        }
+        const { otp } = req.body;
 
         // Check if an OTP record with the provided OTP code exists in the database
         const checkOtp = await OtpSchema.findOne({ otp: otp });
@@ -216,7 +210,7 @@ const verifyUserOtp = asyncHandler(async (req, res) => {
         await checkOtp.save();
 
         // Find the user associated with the provided email
-        const user = await User.findOne({ email: email });
+        const user = await User.findOne({ email: checkOtp.email });
         if (!user) {
             res.status(404).json({ message: 'User does not exist' });
         }

@@ -31,7 +31,6 @@ const loginUserValidation = Joi.object({
 
 //verify otp
 const verifyOtpValidation = Joi.object({
-    email: Joi.string().email().required(),
     otp: Joi.string().min(6).max(6).required()
 });
 

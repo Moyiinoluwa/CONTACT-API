@@ -128,7 +128,7 @@ const registerLinkUser = asyncHandler(async (req, res) => {
 
         //save otp to otp table
         const fiveMinuteslater = new Date()
-        await fiveMinuteslater.setMinutes(fiveMinuteslater.getMinutes() + 20)
+        await fiveMinuteslater.setMinutes(fiveMinuteslater.getMinutes() + 5)
 
         const sentOtp = new OtpSchema()
         sentOtp.email = user.email
